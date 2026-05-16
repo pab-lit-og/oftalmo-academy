@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Oftalmo Academy · Dr. Vázquez Gómez</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
+::-webkit-scrollbar{width:0}
+button{font-family:inherit}
+a{text-decoration:none}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+const MODULES = [
+  {
+    id:1, icon:"🔬", title:"Refracción Clínica", subtitle:"La base de todo", color:"#0ea5e9",
+    lessons:[
+      {
+        title:"Retinoscopia", emoji:"🔦",
+        theory:[
+          {heading:"¿Qué es?", text:"Técnica OBJETIVA para estimar el error refractivo. No depende de las respuestas del paciente. Es tu punto de partida antes del subjetivo. En oftalmo, es tu salvavidas cuando el paciente no colabora (niños, discapacidad, sedación)."},
+          {heading:"Fundamento óptico", text:"Proyectas un haz de luz con el retinoscopio y observas el reflejo retiniano (reflejo en espejo del fondo). Según cómo se mueve ese reflejo al barrer, deduces el estado refractivo."},
+          {heading:"Interpretación del reflejo", text:"DIRECTO (mismo sentido que tu barrido) → hipermetropía o miopía < 1.50D → añade positivo (+). INVERSO (sentido contrario) → miopía > 1.50D → añade negativo (−). NEUTRO (parpadeo, sin movimiento claro) → ¡has llegado! Ese es el valor."},
+          {heading:"Distancia de trabajo", text:"Lo estándar es 66cm → compensas restando −1.50D al resultado. A 50cm → restas −2.00D. Ejemplo: si neutralizas con +3.00D a 66cm, la refracción real es +3.00 − 1.50 = +1.50D."}
+        ],
+        protocol:["Oscurece la sala (no hace falta total, con poca luz ambiental vale)","Coloca la regla de esquiascopia o el foróptero con lentes de prueba","Trabaja a distancia fija (66cm es lo habitual)","Barre en el meridiano horizontal — observa movimiento del reflejo","Añade lentes (+/−) hasta neutralizar → anota la esfera en ese meridiano","Gira 90° y barre en vertical — neutraliza ese meridiano","La diferencia entre ambos meridianos = cilindro (astigmatismo)","Resta la compensación por distancia de trabajo al resultado final"],
+        pearls:["Si el reflejo es muy tenue o irregular → sospecha opacidad de medios (catarata, córnea turbia)","Un reflejo en tijera (se abre/cierra) sugiere queratocono o astigmatismo irregular","En niños, SIEMPRE con cicloplejia (atropina o ciclopentolato) para bloquear la acomodación","Es la técnica gold standard para niños y pacientes no verbales"],
+        videos:[{title:"Retinoscopia paso a paso", url:"https://www.youtube.com/results?search_query=retinoscopy+technique+tutorial"},{title:"Reflejo directo vs inverso", url:"https://www.youtube.com/results?search_query=retinoscopy+reflex+direct+inverse"}]
+      },
+      {
+        title:"Subjetivo Monocular", emoji:"👁️",
+        theory:[
+          {heading:"¿Para qué sirve?", text:"Refinar la retinoscopia con las respuestas del paciente. Pasas de un dato objetivo a uno subjetivo → la graduación final. Es la prueba que más vas a hacer en consulta de refracción."},
+          {heading:"Secuencia lógica", text:"1) Empannamiento (fogging): emborronas con +0.75/+1.00 sobre la retino para relajar acomodación. 2) Desempañas: vas quitando positivo de 0.25 en 0.25 hasta máxima AV. 3) Ajuste cilindro: cilindro cruzado de Jackson (CCJ). 4) Ajuste esférico final: rojo-verde o empañamiento fino."},
+          {heading:"El empañamiento (Fogging)", text:"CLAVE: miopizas al paciente añadiendo positivo para que relaje la acomodación. Si no empañas, el paciente acomoda y le hipercorriges la miopía o infracompensas la hipermetropía. Es el error #1 del residente novato."},
+          {heading:"Cilindro Cruzado de Jackson (CCJ)", text:"Determina eje y potencia del cilindro (astigmatismo). Para EJE: colocas CCJ con su eje a 45° del cilindro que tienes → giras, el paciente elige posición 1 o 2 → ajustas eje hacia la línea roja elegida. Para POTENCIA: colocas CCJ con ejes coincidentes → giras, elige → ajustas potencia ±0.25DC."},
+          {heading:"Test Rojo-Verde (bicromático)", text:"Si ve mejor las letras del VERDE → está miope (sobrecorregido en miopía o infracorregido en hipermetropía) → añade +0.25. Si ve mejor el ROJO → está hipermétrope → añade −0.25. Si ve igual → perfecto, equilibrado. Regla: ROJO = Recetar más negativo. VERDE = Graduación excesiva de negativo."}
+        ],
+        protocol:["Parte siempre de la retinoscopia (valor objetivo)","Ocluye el ojo que NO examinas","Empaña con +0.75 / +1.00 → AV debe bajar a ~0.5 o menos","Desempaña: retira +0.25 en 0.25 → para cuando AV no mejore más","CCJ eje: barridos a 45° del eje puesto → ajusta hasta mínima diferencia","CCJ potencia: ejes coincidentes → ajusta ±0.25DC","Reajusta esfera: por cada 0.50DC de cilindro añadido → compensa +0.25 esfera","Rojo-verde final: equilibra hasta igualdad o ligero dominio rojo","Apunta la AV con la corrección final (Ej: OD −2.00 −0.75 x 180 → AV 1.0)"],
+        pearls:["Máximo positivo con máxima AV → regla de oro. No hipercorregir miopía.","Si el paciente dice que con −4.00 y con −4.25 ve 'igual de bien' → quédate con −4.00","Jóvenes hipermétropes: pueden enmascarar hasta +2.00D con acomodación → la retino bajo ciclo es IMPRESCINDIBLE","Si la AV no llega a 1.0 con la mejor corrección → busca patología: ambliopía, catarata incipiente, maculopatía…"],
+        videos:[{title:"Refracción subjetiva completa", url:"https://www.youtube.com/results?search_query=subjective+refraction+technique+optometry"},{title:"Cilindro cruzado de Jackson", url:"https://www.youtube.com/results?search_query=jackson+cross+cylinder+technique"}]
+      },
+      {
+        title:"Lensometría y Receta", emoji:"📋",
+        theory:[
+          {heading:"Lensometría", text:"Medir la graduación de las gafas que ya trae el paciente con el frontofocómetro (lensómetro). Es tu primer paso antes de refractar: saber de dónde partes. Si el paciente ve bien con lo que trae y la retino coincide, no toques."},
+          {heading:"Cómo anotar la Rx", text:"Formato estándar: Esfera / Cilindro × Eje. Ejemplo: −2.00 / −0.75 × 180. La esfera puede ser + o −. El cilindro se anota en negativo (convención oftalmológica). El eje va de 1° a 180°."},
+          {heading:"Transposición", text:"Optometría suele usar cilindro negativo. Oftalmo también, pero a veces verás positivo. Para transponer: suma algebraicamente esfera + cilindro → nueva esfera. Cambia signo del cilindro. Eje ± 90°. Ejemplo: +1.00/−0.50×90 → +0.50/+0.50×180."},
+          {heading:"Adición (Add) para presbicia", text:"La adición es la potencia extra para cerca. Se suma a la Rx de lejos. Valores típicos: +1.00 (45 años inicio) hasta +2.50/+3.00 (>60 años). Mides con el subjetivo a 40cm o con la Cruz de Presbyopia."}
+        ],
+        protocol:["Coloca la gafa del paciente en el frontofocómetro","Enfoca la diana — mueve hasta imagen nítida","Lee esfera, cilindro y eje del OD y después del OI","Compara con la refracción que obtienes → si coincide y ve bien, no cambies","Si hay diferencia significativa (>0.50D), investiga por qué","Anota siempre: Rx antigua vs Rx nueva, AV con cada una"],
+        pearls:["Muchos pacientes llevan gafas mal graduadas sin saberlo → lensometría obligatoria","Si la gafa da una AV de 1.0 y la retino coincide → el paciente NO necesita cambio","Diferencias >1.00D entre gafa antigua y nueva → cuidado con el cambio brusco, puede no tolerarlo","En progresivos: mide lejos (arriba) y cerca (abajo) para obtener la adición"],
+        videos:[{title:"Uso del frontofocómetro", url:"https://www.youtube.com/results?search_query=lensometer+how+to+use"}]
+      }
+    ],
+    caseStudy:{
+      title:"Caso: Joven universitaria con cefaleas",
+      scenario:"María, 22 años. Cefaleas frontales tras estudio prolongado. Gafas de hace 3 años. Refiere que ve bien de lejos pero se cansa leyendo.",
+      data:["Rx antigua (lensometría): OD +0.50 OI +0.50","Retinoscopia bajo cicloplejia: OD +2.25 −0.50 × 180 / OI +2.00","AV sin corrección: OD 1.0 / OI 1.0","Subjetivo: OD +1.50 −0.50 × 180 → AV 1.0 / OI +1.25 → AV 1.0"],
+      question:"¿Qué está pasando aquí?",
+      options:[
+        {text:"La retino no sirve porque la AV ya es 1.0 sin gafas", correct:false, explanation:"La AV puede ser 1.0 porque la paciente está acomodando para compensar su hipermetropía. No descarta el defecto."},
+        {text:"Hipermetropía latente: la cicloplejia revela la total, el subjetivo la manifiesta", correct:true, explanation:"¡Exacto! La hipermetropía total (ciclo) es +2.25 pero ella solo acepta +1.50 — hay un componente latente que su acomodación compensa. Las cefaleas son por el esfuerzo acomodativo sostenido en cerca. Se prescribe el subjetivo, no la cicloplejia completa, pero sabiendo que tiene reserva latente."},
+        {text:"Miopía enmascarada por un error de la retinoscopia", correct:false, explanation:"La retino muestra claramente valores positivos altos. No hay miopía. Los signos positivos son consistentes con hipermetropía."},
+        {text:"Presbicia precoz", correct:false, explanation:"A los 22 años la presbicia es prácticamente imposible. El problema es hipermetropía latente con esfuerzo acomodativo, no pérdida de acomodación."}
+      ]
+    }
+  },
+  {
+    id:2, icon:"👀", title:"Motilidad y Binocular", subtitle:"Cómo trabajan los dos ojos juntos", color:"#8b5cf6",
+    lessons:[
+      {
+        title:"Cover Test", emoji:"🫣",
+        theory:[
+          {heading:"¿Para qué?", text:"Detectar estrabismos (tropias) y forias. Es LA prueba más importante de la exploración binocular. La haces en TODAS las consultas. Sencilla, rápida, y te da una información brutal."},
+          {heading:"Cover-Uncover (tropia)", text:"Tapas un ojo y observas el OTRO: ¿se mueve para fijar? SI se mueve → TROPIA (estrabismo). Endotropia: ojo estaba desviado hacia nasal → se mueve hacia fuera. Exotropia: estaba desviado temporal → se mueve hacia dentro. Hipertropia: estaba elevado → baja."},
+          {heading:"Cover Alternante (foria)", text:"Alternas el oclusor de un ojo al otro sin permitir fusión. Al destapar, ¿se mueve el ojo descubierto para refusionar? SI → FORIA (desviación latente, solo aparece al romper fusión). Se cuantifica con prismas (barra de prismas)."},
+          {heading:"Valores normales de foria", text:"En lejos: 1Δ exoforia (XF) es normal. En cerca: 3-6Δ XF es normal (por convergencia). Endoforias altas o exoforias >10Δ en cerca → investigar reservas fusionales."}
+        ],
+        protocol:["Paciente fijando un optotipo a 6m (lejos) y luego a 40cm (cerca)","Cover-Uncover: tapa OD → observa si OI se mueve → repite tapando OI","Si hay tropia: documenta dirección, ojo afecto, magnitud con prismas","Cover Alternante: alterna oclusor rápidamente OD/OI/OD/OI","Observa movimiento de refijación al destapar → eso es la foria","Cuantifica con barra de prismas: el prisma que anula el movimiento = magnitud"],
+        pearls:["Cover test SIEMPRE con la mejor corrección óptica puesta","Hazlo en lejos Y en cerca — pueden ser muy diferentes","Una exotropia intermitente puede parecer foria si la pillas en fase fusional → observa al paciente mientras hablas con él","En niños con endotropia + hipermetropía → corrección total del hipermétrope puede resolver el estrabismo (endotropia acomodativa)"],
+        videos:[{title:"Cover test paso a paso", url:"https://www.youtube.com/results?search_query=cover+test+ophthalmology+tutorial"}]
+      },
+      {
+        title:"Motilidad Ocular (MOE)", emoji:"↔️",
+        theory:[
+          {heading:"Ducciones y Versiones", text:"DUCCIONES = movimientos de UN solo ojo (monocular). VERSIONES = movimientos conjugados de ambos ojos (binocular). Las versiones se exploran en las 9 posiciones de mirada (PPM + 8 cardinales)."},
+          {heading:"Las 9 posiciones de mirada", text:"PPM (primaria), arriba, abajo, derecha, izquierda, arriba-derecha, arriba-izquierda, abajo-derecha, abajo-izquierda. Cada posición evalúa músculos específicos. Lo clave: en posiciones extremas, el músculo agonista está 'aislado'."},
+          {heading:"Músculos y su posición diagnóstica", text:"Arriba-derecha → RS del OD y OI del OI. Arriba-izquierda → RS del OI y OI del OD. Abajo-derecha → RI del OD y OS del OI. Abajo-izquierda → RI del OI y OS del OD. Derecha → RL del OD y RM del OI. Izquierda → RM del OD y RL del OI."},
+          {heading:"Qué buscar", text:"Limitaciones: ¿el ojo no llega a alguna posición? → paresia/parálisis. Hiperfunciones: ¿un músculo tira de más? Nistagmo en posiciones extremas. Diplopia en alguna posición → documentar."}
+        ],
+        protocol:["Paciente sentado, cabeza recta e inmóvil","Usa una linterna o puntero en la mano extendida","Mueve el estímulo en H: derecha → arriba-derecha → abajo-derecha → izquierda → arriba-izquierda → abajo-izquierda","Observa ambos ojos: ¿siguen de forma suave, simétrica, completa?","Evalúa convergencia: acerca el estímulo a la nariz → ¿ambos ojos convergen?","Documenta cualquier limitación, hiperfunción o nistagmo"],
+        pearls:["Parálisis del VI par (recto lateral) = no puede abducir (mirar hacia fuera) → la más frecuente","Parálisis del III par = ptosis + ojo abajo-afuera + midriasis → URGENCIA si hay dolor (aneurisma)","Parálisis del IV par (oblicuo superior) → hipertropia que empeora en mirada abajo-nasal → tortícolis compensador con cabeza inclinada","En oftalmo, la motilidad NO es optativa → hazla siempre"],
+        videos:[{title:"Exploración MOE 9 posiciones", url:"https://www.youtube.com/results?search_query=extraocular+motility+examination+9+positions"}]
+      },
+      {
+        title:"PPC y Estereopsis", emoji:"🎯",
+        theory:[
+          {heading:"PPC (Punto Próximo de Convergencia)", text:"El punto más cercano al que ambos ojos pueden converger manteniendo fusión. Se mide acercando un estímulo y anotando dónde un ojo 'se escapa' (pierde convergencia) y dónde refusiona (recobra)."},
+          {heading:"Valores normales PPC", text:"Rotura: ≤ 6cm. Recobro: ≤ 10cm. Si rotura > 10cm → insuficiencia de convergencia (IC). La IC es LA condición binocular más frecuente → cefaleas, fatiga lectora, visión doble intermitente en cerca."},
+          {heading:"Estereopsis", text:"Capacidad de percibir profundidad gracias a la disparidad binocular. Se mide con tests como Titmus (mosca + círculos + animales), TNO, o Randot. Normal: ≤ 40 segundos de arco. >100 seg arco → binocularidad reducida."}
+        ],
+        protocol:["PPC: acerca una tarjeta acomodativa (letra pequeña) desde 40cm hacia la nariz","El paciente avisa si ve doble / tú ves que un ojo se desvía → mide esa distancia (rotura)","Aleja de nuevo → mide dónde vuelve a fusionar (recobro)","Repite 3 veces y promedia","Estereopsis: gafas polarizadas + test Titmus → el paciente señala qué círculo 'sale'","Documenta el umbral estereoscópico en segundos de arco"],
+        pearls:["PPC remoto + exoforia alta en cerca → insuficiencia de convergencia clásica","La IC tiene tratamiento con terapia visual (ejercicios de convergencia) con altísima evidencia (CITT study)","Un niño que 'no le gusta leer' y se frota los ojos → descarta IC antes de pensar en TDAH","Si la estereopsis es 0 (no percibe nada) → sospecha ambliopía profunda o supresión"],
+        videos:[{title:"PPC y test de estereopsis", url:"https://www.youtube.com/results?search_query=near+point+convergence+test+stereo+acuity"}]
+      }
+    ],
+    caseStudy:{
+      title:"Caso: Niño de 5 años con ojo desviado",
+      scenario:"Marcos, 5 años. Su madre nota que desvía el ojo derecho hacia dentro desde hace meses, sobre todo cuando se cansa o mira de cerca. El pediatra lo derivó.",
+      data:["AV con corrección: OD 0.6 / OI 1.0 (optotipos infantiles)","Rx actual: ninguna, nunca ha llevado gafas","Retino bajo cicloplejia: OD +4.50 / OI +4.25","Cover test lejos sin Rx: ortotropia","Cover test cerca sin Rx: ET 20Δ (endotropia)","Cover test cerca con Rx completa: ortoforia"],
+      question:"¿Cuál es el diagnóstico y la actitud?",
+      options:[
+        {text:"Estrabismo estructural → derivar a cirugía directamente", correct:false, explanation:"No es estructural porque al corregir la hipermetropía, la endotropia desaparece por completo."},
+        {text:"Endotropia acomodativa + ambliopía OD → corregir hipermetropía total + oclusión OI", correct:true, explanation:"¡Correcto! Es una endotropia acomodativa pura: la hipermetropía sin corregir fuerza la acomodación, que arrastra convergencia → endotropia. Al corregir (+4.50/+4.25), desaparece. La AV de 0.6 en OD indica ambliopía → tratamiento con oclusión del ojo bueno (OI) o penalización."},
+        {text:"Ambliopía bilateral → parche alternante", correct:false, explanation:"Solo OD tiene AV reducida. OI ve 1.0 → la ambliopía es unilateral derecha. El parche va en el ojo BUENO (OI)."},
+        {text:"Insuficiencia de convergencia", correct:false, explanation:"La IC produce EXOdesviación en cerca, no endodesviación. Aquí tenemos ENDOtropia → el mecanismo es exceso acomodativo por hipermetropía."}
+      ]
+    }
+  },
+  {
+    id:3, icon:"🫧", title:"Contactología Esencial", subtitle:"Lo que un oftalmólogo debe saber de LC", color:"#f59e0b",
+    lessons:[
+      {
+        title:"Queratometría y Topografía", emoji:"🌐",
+        theory:[
+          {heading:"Queratometría (K)", text:"Mide la curvatura de la córnea central (~3mm centrales). Te da dos meridianos principales en dioptrías (D) o mm de radio. Normal: 42-44D (~7.70-8.00mm). La diferencia entre meridianos = astigmatismo corneal."},
+          {heading:"Topografía corneal", text:"Mapa completo de la superficie corneal. Mucho más info que la K aislada. Detecta: queratocono (incipiente incluso), astigmatismo irregular, ectasias, degeneraciones corneales. Imprescindible PRE y POST cirugía refractiva."},
+          {heading:"Patrones topográficos clave", text:"Pajarita simétrica = astigmatismo regular (normal). Pajarita asimétrica = sospecha queratocono. Cono inferior = queratocono. Islote central elevado = queratocono avanzado. Patrón irregular difuso = lente de contacto warpage o patología."}
+        ],
+        protocol:["Queratómetro: el paciente fija la marca → alinea miras → lee radios/dioptrías y ejes","Topografía: paciente fija punto central, no parpadear durante la captura","Evalúa mapas: axial, tangencial, elevación, paquimetría","Compara OD vs OI → asimetría significativa → sospecha ectasia","Documenta: K flat, K steep, eje, SimK, índices de sospecha (KISA%, I-S index)"],
+        pearls:["K > 47D o asimetría I-S > 1.4D → screening positivo para queratocono","Todo paciente joven que pida cirugía refractiva → topografía OBLIGATORIA","Warpage corneal por LC → retira LC 2 semanas y repite topografía","Las K te dicen la primera curva base para adaptar una LC → radio plano ~0.2mm más que K flat"],
+        videos:[{title:"Queratometría básica", url:"https://www.youtube.com/results?search_query=keratometry+ophthalmology+basics"},{title:"Topografía corneal interpretación", url:"https://www.youtube.com/results?search_query=corneal+topography+interpretation+patterns"}]
+      },
+      {
+        title:"Tipos de LC y Adaptación", emoji:"💧",
+        theory:[
+          {heading:"LC Blandas", text:"Hidrogel o silicona-hidrogel. Las más habituales. Diaria, quincenal o mensual. Para miopía, hipermetropía, astigmatismo (tóricas) y presbicia (multifocales). Fáciles de adaptar. No corrigen bien astigmatismos irregulares."},
+          {heading:"LC Rígidas Gas Permeable (RPG)", text:"Mayor calidad óptica. Corrigen astigmatismo irregular (queratocono). 'Crea' una nueva superficie óptica regular. Más incómodas al inicio pero mejor tolerancia a largo plazo. DK/t más alto → más oxígeno."},
+          {heading:"LC Esclerales", text:"Apoyan en esclera, saltan la córnea creando una cámara de lágrima. Para córneas muy irregulares, ojo seco severo, post-quirúrgicos. El reservorio de lágrima hidrata constantemente. Diámetro >14.5mm."},
+          {heading:"Ortoqueratología (Orto-K)", text:"LC rígida nocturna que moldea la córnea para ver sin gafas de día. Eficaz en miopías hasta −6.00D. Efecto REVERSIBLE. Gran evidencia en control de miopía en niños (MiSight, estudios LORIC, SMART)."}
+        ],
+        protocol:["Anamnesis: motivación, entorno (oficina, deporte, piscina), uso previo de LC","Queratometría + topografía para radio base y descartar ectasia","Elige material y tipo según Rx, córnea y expectativas","LC blanda: diámetro 14.0-14.5mm, radio ~8.40-8.80mm → evaluar centrado y movimiento","LC RPG: diámetro 9.0-10.0mm, radio ~K flat o ligeramente más plano → evaluar fluoresceinograma","Enseña inserción, extracción y mantenimiento al paciente","Revisión 1 semana, 1 mes, luego cada 6 meses"],
+        pearls:["Si hay queratocono → LC RPG o escleral, NO blanda tórica","Para control de miopía infantil: Orto-K o blandas de desenfoque periférico (MiSight/DIMS)","En ojo seco → escleral >> RPG >> blanda. La cámara de lágrima escleral es terapéutica","Siempre documentar fluoresceinograma en RPG: verde = apoyo, negro = levantamiento"],
+        videos:[{title:"Fluoresceinograma en RPG", url:"https://www.youtube.com/results?search_query=fluorescein+pattern+RGP+contact+lens"},{title:"Adaptación de escleral", url:"https://www.youtube.com/results?search_query=scleral+contact+lens+fitting+guide"}]
+      }
+    ],
+    caseStudy:{
+      title:"Caso: Joven con visión borrosa progresiva",
+      scenario:"Adrián, 19 años. Visión borrosa que empeora cada revisión. Su miopía ha subido de −3.00 a −5.50 en 2 años. Quiere operarse con láser cuanto antes.",
+      data:["Rx actual: OD −5.50 −1.75 × 45 / OI −5.00 −1.50 × 135","AV corregida: 1.0 ambos ojos con gafas","Topografía: pajarita asimétrica inferior en AO, K max OD 48.2D, OI 47.5D","Paquimetría: OD 485μm / OI 492μm (normal >500μm)","I-S index: OD 2.1D / OI 1.8D (normal <1.4D)"],
+      question:"¿Cuál es la actitud correcta?",
+      options:[
+        {text:"Programar LASIK ya que la AV es buena", correct:false, explanation:"¡GRAVE ERROR! La Rx NO es estable, la topografía muestra pajarita asimétrica con K altos, la paquimetría es baja y el I-S está elevado. Todo apunta a queratocono. LASIK en queratocono → ectasia iatrogénica → desastre."},
+        {text:"Queratocono bilateral → cross-linking + LC RPG/escleral, contraindicado LASIK", correct:true, explanation:"¡Correcto! Sospecha fundada de queratocono bilateral. Se debe: 1) confirmar con topografía serial y tomografía (Pentacam), 2) cross-linking para frenar progresión, 3) LC RPG o escleral para rehabilitación visual, 4) NUNCA cirugía refractiva ablativa."},
+        {text:"Simple miopía progresiva → adaptar LC blandas y re-evaluar", correct:false, explanation:"No es simple miopía. Las banderas rojas: astigmatismo oblicuo, progresión rápida, topografía asimétrica, paquimetría fina."},
+        {text:"Mala adaptación a gafas → mejorar el centrado", correct:false, explanation:"La AV es 1.0, así que las gafas están bien. El problema está en la córnea."}
+      ]
+    }
+  },
+  {
+    id:4, icon:"💡", title:"Semiología Ocular", subtitle:"Lámpara de hendidura y fondo de ojo", color:"#ef4444",
+    lessons:[
+      {
+        title:"Biomicroscopía (Lámpara de Hendidura)", emoji:"🔬",
+        theory:[
+          {heading:"¿Qué exploras?", text:"TODO el segmento anterior: párpados, pestañas, conjuntiva, córnea (5 capas), cámara anterior, iris, cristalino. Con lentes auxiliares: ángulo (gonioscopia) y fondo de ojo. Es tu microscopio clínico."},
+          {heading:"Técnicas de iluminación", text:"Difusa: visión general. Paralelepípedo: haz estrecho inclinado → espesor corneal, infiltrados, cuerpos extraños. Sección óptica: haz fino → corte transversal de córnea. Retroiluminación: opacidades, vacuolas, pigmento. Dispersión escleral: haz en limbo → edema corneal difuso."},
+          {heading:"Hallazgos clave", text:"Tinción fluoresceína: erosiones, úlceras → verdes con filtro azul. Tyndall +: células/proteínas en cámara anterior → uveítis. Precipitados queráticos: depósitos en endotelio → uveítis crónica. Catarata: opacidad del cristalino → nuclear, cortical, subcapsular posterior."}
+        ],
+        protocol:["Ajusta oculares a tu refracción, mentonera cómoda","Bajo aumento (10x) + difusa → barrido general","Párpados y pestañas → blefaritis, orzuelos, triquiasis","Conjuntiva → folículos, papilas, hiperemia, secreciones","Córnea → paralelepípedo y sección óptica: opacidades, infiltrados, neovasos","Fluoresceína + filtro azul cobalto → defectos epiteliales","Cámara anterior → Tyndall (haz fino, alto aumento): ¿hay células?","Iris → nódulos, sinequias, rubeosis","Cristalino → opacidades → clasifica localización y densidad"],
+        pearls:["Ojo rojo + Tyndall positivo → uveítis hasta que se demuestre lo contrario","Úlcera corneal + LC = URGENCIA → cultivo + colirio reforzado, NUNCA parche ni corticoide","Catarata subcapsular posterior → muy sintomática aunque sea pequeña","Siempre evertir párpado superior → cuerpos extraños se esconden ahí"],
+        videos:[{title:"Técnicas de iluminación en LH", url:"https://www.youtube.com/results?search_query=slit+lamp+illumination+techniques+ophthalmology"},{title:"Cómo evaluar Tyndall", url:"https://www.youtube.com/results?search_query=slit+lamp+anterior+chamber+cells+flare"}]
+      },
+      {
+        title:"Fondo de Ojo y Tonometría", emoji:"🔴",
+        theory:[
+          {heading:"Fondo de ojo (Oftalmoscopia)", text:"Directa: con el oftalmoscopio directo → imagen derecha y aumentada → buena para papila y mácula rápida. Indirecta: con lente +20D o +28D → imagen invertida, mayor campo → el estándar en oftalmo para retina periférica."},
+          {heading:"Qué evaluar en el fondo", text:"PAPILA: bordes nítidos, rosada, excavación C/D ≤0.3. Si excavación grande → glaucoma. MÁCULA: reflejo foveal, sin edema ni drusas. VASOS: A/V 2:3, cruces A-V (Gunn → HTA), exudados, hemorragias. PERIFERIA: desgarros, lattice, desprendimiento."},
+          {heading:"Tonometría (PIO)", text:"Goldmann (aplanación) = gold standard. Normal: 10-21 mmHg. Sospecha glaucoma si: PIO >21, excavación >0.5, asimetría C/D >0.2, defectos campimétricos. La PIO por sí sola NO diagnostica glaucoma."},
+          {heading:"Señales de peligro", text:"Edema de papila bilateral → hipertensión intracraneal → NEUROIMAGEN urgente. Hemorragias en llama + exudados algodonosos → retinopatía hipertensiva/diabética. Desprendimiento de retina → cortina visual + fotopsias → URGENCIA QUIRÚRGICA."}
+        ],
+        protocol:["Dilata: tropicamida 1% + fenilefrina 2.5% → espera 20-30 min","Directa: acerca el oftalmoscopio, enfoca papila, localiza mácula","Indirecta: paciente tumbado, lente +20D, imagen invertida","Evalúa: papila → mácula → vasos → periferia (4 cuadrantes)","Documenta: C/D ratio, hallazgos maculares, estado vascular","Tonometría: anestesia tópica + fluoresceína, cono de Goldmann en córnea","Semicírculos se superponen → leer mmHg"],
+        pearls:["Dilatación contraindicada si cámara estrecha → gonioscopia antes si dudas","Fenilefrina contraindicada en HTA severa no controlada → solo tropicamida","C/D 0.8 con PIO 14 mmHg → puede ser glaucoma de tensión normal → campimetría","Retinopatía diabética: primero microaneurismas → si neovasos = proliferativa = láser urgente"],
+        videos:[{title:"Oftalmoscopia directa", url:"https://www.youtube.com/results?search_query=direct+ophthalmoscopy+technique+tutorial"},{title:"Tonometría Goldmann", url:"https://www.youtube.com/results?search_query=goldmann+applanation+tonometry+technique"}]
+      }
+    ],
+    caseStudy:{
+      title:"Caso: Señora con ojo rojo y dolor",
+      scenario:"Carmen, 68 años. Urgencias: ojo derecho rojo, dolor intenso, visión borrosa y halos alrededor de las luces desde hace 6 horas. Náuseas y cefalea hemicraneal derecha.",
+      data:["AV: OD 0.1 / OI 0.8","Biomicroscopía OD: inyección mixta, edema corneal difuso, cámara anterior muy estrecha, pupila midriasis media fija","PIO: OD 56 mmHg / OI 18 mmHg","Gonioscopia OI: ángulo estrecho (Shaffer II)","Fondo OD: no valorable por edema corneal"],
+      question:"¿Qué es y qué haces?",
+      options:[
+        {text:"Uveítis anterior aguda → corticoide + midriático", correct:false, explanation:"La PIO de 56 es incompatible con uveítis simple. Además la pupila está dilatada (en uveítis suele estar miótica). Cámara estrecha + PIO altísima → cierre angular."},
+        {text:"Glaucoma agudo de ángulo cerrado → hipotensor urgente + iridotomía YAG", correct:true, explanation:"¡Correcto! Cuadro clásico. Tratamiento: 1) Pilocarpina 2%, 2) Timolol + brimonidina + dorzolamida tópicos, 3) Acetazolamida 250mg IV/oral, 4) Manitol IV si no baja, 5) Iridotomía YAG BILATERAL cuando ceda."},
+        {text:"Conjuntivitis hiperaguda → antibiótico", correct:false, explanation:"La conjuntivitis no da PIO de 56, ni edema corneal, ni pupilas fijas."},
+        {text:"Queratitis microbiana → raspado + colirios reforzados", correct:false, explanation:"El edema corneal aquí es difuso por la PIO, no un infiltrado focal. Cámara estrecha + PIO → cierre angular."}
+      ]
+    }
+  }
+];
+
+function App() {
+  const [view,setView] = useState("home");
+  const [mod,setMod] = useState(null);
+  const [lesson,setLesson] = useState(null);
+  const [selOpt,setSelOpt] = useState(null);
+  const [done,setDone] = useState({});
+  const [openSec,setOpenSec] = useState(null);
+  const [anim,setAnim] = useState(false);
+  const topRef = useRef(null);
+
+  useEffect(()=>{setAnim(true)},[]);
+  const scrollTop = ()=> topRef.current && topRef.current.scrollIntoView({behavior:'smooth'});
+
+  const markDone = (mId,lIdx)=> setDone(p=>({...p,[`${mId}-${lIdx}`]:true}));
+  const isDone = (mId,lIdx)=> !!done[`${mId}-${lIdx}`];
+  const modProg = (m)=> { const d=m.lessons.filter((_,i)=>isDone(m.id,i)).length; return Math.round((d/m.lessons.length)*100); };
+
+  const goHome = ()=>{ setView("home"); setMod(null); setLesson(null); setSelOpt(null); setOpenSec(null); scrollTop(); };
+  const openMod = (m)=>{ setMod(m); setView("module"); setLesson(null); setSelOpt(null); scrollTop(); };
+  const openLesson = (l,i)=>{ setLesson({...l,idx:i}); setView("lesson"); setOpenSec(null); scrollTop(); };
+  const openCase = ()=>{ setView("case"); setSelOpt(null); scrollTop(); };
+
+  const totalL = MODULES.reduce((s,m)=>s+m.lessons.length,0);
+  const totalD = Object.keys(done).length;
+
+  const S = {
+    page:{minHeight:"100vh",background:"linear-gradient(145deg,#0f172a 0%,#1e293b 50%,#0f172a 100%)",color:"#e2e8f0",fontFamily:"'DM Sans',sans-serif"},
+    wrap:{maxWidth:600,margin:"0 auto",padding:"28px 20px 40px"},
+    back:{background:"none",border:"none",color:"#64748b",fontSize:14,cursor:"pointer",padding:"8px 0",marginBottom:16,display:"flex",alignItems:"center",gap:6},
+  };
+
+  // === HOME ===
+  if(view==="home") return (
+    <div style={S.page}><div ref={topRef}/><div style={S.wrap}>
+      <div style={{textAlign:"center",marginBottom:32,opacity:anim?1:0,transform:anim?"translateY(0)":"translateY(-20px)",transition:"all .6s ease"}}>
+        <div style={{fontSize:52,marginBottom:4}}>🩺</div>
+        <h1 style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:700,margin:0,background:"linear-gradient(135deg,#38bdf8,#818cf8)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Oftalmo Academy</h1>
+        <p style={{color:"#64748b",fontSize:13,marginTop:6}}>Preparado para el <strong style={{color:"#94a3b8"}}>Dr. Vázquez Gómez</strong></p>
+        <p style={{color:"#475569",fontSize:11,marginTop:2}}>por Pablo · Óptico-Optometrista</p>
+      </div>
+
+      {/* Welcome card */}
+      <div style={{background:"linear-gradient(135deg,#1e3a5f,#1e293b)",borderRadius:16,padding:"20px",marginBottom:24,border:"1px solid #334155"}}>
+        <p style={{fontSize:13,lineHeight:1.7,color:"#94a3b8",margin:0}}>
+          Bienvenido, <strong style={{color:"#e2e8f0"}}>Dr. Vázquez Gómez</strong>. Esto es una guía interactiva con los fundamentos de optometría clínica que vas a necesitar desde el primer día de residencia. Cada módulo tiene teoría directa, protocolos paso a paso, perlas clínicas y un caso interactivo para poner a prueba lo aprendido. Sin parrafadas — ve a tu ritmo.
+        </p>
+      </div>
+
+      {/* Progress */}
+      <div style={{background:"#1e293b",borderRadius:12,padding:"14px 18px",marginBottom:24,border:"1px solid #334155"}}>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:8}}>
+          <span style={{color:"#94a3b8"}}>Progreso global</span>
+          <span style={{color:"#38bdf8",fontWeight:700}}>{totalD}/{totalL} lecciones</span>
+        </div>
+        <div style={{height:8,background:"#0f172a",borderRadius:99}}>
+          <div style={{height:"100%",borderRadius:99,width:`${totalL?(totalD/totalL)*100:0}%`,background:"linear-gradient(90deg,#38bdf8,#818cf8)",transition:"width .6s ease"}}/>
+        </div>
+      </div>
+
+      {/* Modules */}
+      {MODULES.map((m,i)=>{
+        const p=modProg(m);
+        return (
+          <div key={m.id} onClick={()=>openMod(m)} style={{background:"linear-gradient(135deg,#1e293b,#1a2332)",borderRadius:16,padding:18,marginBottom:14,cursor:"pointer",border:`1px solid ${m.color}33`,position:"relative",overflow:"hidden",opacity:anim?1:0,transform:anim?"translateY(0)":"translateY(30px)",transition:`all .5s ease ${i*.1}s`}}>
+            <div style={{position:"absolute",top:0,left:0,height:3,width:`${p}%`,background:m.color,transition:"width .5s"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:14}}>
+              <div style={{fontSize:30,width:48,height:48,display:"flex",alignItems:"center",justifyContent:"center",background:`${m.color}15`,borderRadius:12}}>{m.icon}</div>
+              <div style={{flex:1}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <h3 style={{margin:0,fontSize:15,fontWeight:700,color:"#f1f5f9"}}>{m.title}</h3>
+                  <span style={{fontSize:11,color:m.color,fontWeight:700}}>{p}%</span>
+                </div>
+                <p style={{margin:"3px 0 0",fontSize:12,color:"#64748b"}}>{m.subtitle}</p>
+                <p style={{margin:"5px 0 0",fontSize:11,color:"#475569"}}>{m.lessons.length} lecciones + caso clínico</p>
+              </div>
+              <div style={{color:"#475569",fontSize:20}}>›</div>
+            </div>
+          </div>
+        );
+      })}
+
+      <div style={{textAlign:"center",marginTop:20,fontSize:11,color:"#334155"}}>v1.0 · Mayo 2026</div>
+    </div></div>
+  );
+
+  // === MODULE ===
+  if(view==="module"&&mod) return (
+    <div style={S.page}><div ref={topRef}/><div style={S.wrap}>
+      <button onClick={goHome} style={S.back}>‹ Módulos</button>
+      <div style={{textAlign:"center",marginBottom:24}}>
+        <div style={{fontSize:44}}>{mod.icon}</div>
+        <h2 style={{fontFamily:"'Fraunces',serif",fontSize:22,margin:"6px 0 0",color:mod.color}}>{mod.title}</h2>
+        <p style={{color:"#94a3b8",fontSize:13}}>{mod.subtitle}</p>
+      </div>
+
+      {mod.lessons.map((l,i)=>{
+        const d=isDone(mod.id,i);
+        return (
+          <div key={i} onClick={()=>openLesson(l,i)} style={{background:d?`${mod.color}10`:"#1e293b",borderRadius:14,padding:"16px 18px",marginBottom:10,cursor:"pointer",border:`1px solid ${d?mod.color+"44":"#334155"}`,display:"flex",alignItems:"center",gap:12,transition:"all .2s"}}>
+            <div style={{fontSize:22,width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",background:d?`${mod.color}22`:"#0f172a",borderRadius:10}}>{d?"✅":l.emoji}</div>
+            <div style={{flex:1}}>
+              <h4 style={{margin:0,fontSize:14,fontWeight:600,color:d?mod.color:"#f1f5f9"}}>{l.title}</h4>
+              <p style={{margin:"3px 0 0",fontSize:11,color:"#64748b"}}>{l.theory.length} conceptos · {l.protocol.length} pasos · {l.pearls.length} perlas</p>
+            </div>
+            <div style={{color:"#475569",fontSize:18}}>›</div>
+          </div>
+        );
+      })}
+
+      <div onClick={openCase} style={{background:"linear-gradient(135deg,#7c3aed22,#4f46e522)",borderRadius:14,padding:18,marginTop:6,cursor:"pointer",border:"1px solid #7c3aed44",textAlign:"center"}}>
+        <div style={{fontSize:26}}>🧩</div>
+        <h4 style={{margin:"6px 0 3px",fontSize:14,fontWeight:700,color:"#a78bfa"}}>Caso Clínico Interactivo</h4>
+        <p style={{margin:0,fontSize:11,color:"#7c3aed"}}>{mod.caseStudy.title}</p>
+      </div>
+    </div></div>
+  );
+
+  // === LESSON ===
+  if(view==="lesson"&&lesson&&mod){
+    const secs=[
+      {key:"theory",label:"📖 Teoría"},
+      {key:"protocol",label:"📋 Protocolo paso a paso"},
+      {key:"pearls",label:"💎 Perlas clínicas"},
+      {key:"videos",label:"🎬 Vídeos recomendados"}
+    ];
+    return (
+      <div style={S.page}><div ref={topRef}/><div style={S.wrap}>
+        <button onClick={()=>openMod(mod)} style={S.back}>‹ {mod.title}</button>
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{fontSize:38}}>{lesson.emoji}</div>
+          <h2 style={{fontFamily:"'Fraunces',serif",fontSize:20,margin:"6px 0 0",color:mod.color}}>{lesson.title}</h2>
+        </div>
+
+        {secs.map(s=>{
+          const isO=openSec===s.key;
+          return (
+            <div key={s.key} style={{marginBottom:8}}>
+              <button onClick={()=>setOpenSec(isO?null:s.key)} style={{width:"100%",background:isO?`${mod.color}15`:"#1e293b",border:`1px solid ${isO?mod.color+"44":"#334155"}`,borderRadius:isO?"14px 14px 0 0":"14px",padding:"14px 16px",color:"#f1f5f9",fontSize:14,fontWeight:600,cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",textAlign:"left",transition:"all .2s"}}>
+                <span>{s.label}</span>
+                <span style={{transform:isO?"rotate(90deg)":"rotate(0)",transition:"transform .2s",color:"#64748b"}}>›</span>
+              </button>
+              {isO&&<div style={{background:"#1a2332",border:`1px solid ${mod.color}22`,borderTop:"none",borderRadius:"0 0 14px 14px",padding:"14px 16px"}}>
+                {s.key==="theory"&&lesson.theory.map((t,i)=>(
+                  <div key={i} style={{marginBottom:i<lesson.theory.length-1?16:0}}>
+                    <h5 style={{margin:"0 0 5px",fontSize:13,fontWeight:700,color:mod.color}}>{t.heading}</h5>
+                    <p style={{margin:0,fontSize:13,lineHeight:1.7,color:"#cbd5e1"}}>{t.text}</p>
+                  </div>
+                ))}
+                {s.key==="protocol"&&<ol style={{margin:0,paddingLeft:20}}>
+                  {lesson.protocol.map((st,i)=>(<li key={i} style={{fontSize:13,lineHeight:1.7,color:"#cbd5e1",marginBottom:7,paddingLeft:4}}>{st}</li>))}
+                </ol>}
+                {s.key==="pearls"&&lesson.pearls.map((p,i)=>(
+                  <div key={i} style={{display:"flex",gap:10,marginBottom:8,padding:"10px 12px",background:"#0f172a",borderRadius:10,borderLeft:`3px solid ${mod.color}`}}>
+                    <span style={{fontSize:15,flexShrink:0}}>💎</span>
+                    <p style={{margin:0,fontSize:13,lineHeight:1.6,color:"#e2e8f0"}}>{p}</p>
+                  </div>
+                ))}
+                {s.key==="videos"&&lesson.videos.map((v,i)=>(
+                  <a key={i} href={v.url} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:"#0f172a",borderRadius:10,marginBottom:6,border:"1px solid #334155"}}>
+                    <span style={{fontSize:20}}>▶️</span>
+                    <span style={{fontSize:13,color:"#38bdf8",fontWeight:500}}>{v.title}</span>
+                  </a>
+                ))}
+              </div>}
+            </div>
+          );
+        })}
+
+        {!isDone(mod.id,lesson.idx)?
+          <button onClick={()=>markDone(mod.id,lesson.idx)} style={{width:"100%",marginTop:18,padding:"15px",background:`linear-gradient(135deg,${mod.color},${mod.color}cc)`,border:"none",borderRadius:12,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>✓ Marcar como completada</button>
+        :
+          <div style={{textAlign:"center",marginTop:18,padding:"13px",background:`${mod.color}15`,borderRadius:12,border:`1px solid ${mod.color}33`}}>
+            <span style={{fontSize:13,color:mod.color,fontWeight:600}}>✅ Lección completada</span>
+          </div>
+        }
+      </div></div>
+    );
+  }
+
+  // === CASE ===
+  if(view==="case"&&mod){
+    const cs=mod.caseStudy;
+    return (
+      <div style={S.page}><div ref={topRef}/><div style={S.wrap}>
+        <button onClick={()=>openMod(mod)} style={S.back}>‹ {mod.title}</button>
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{fontSize:38}}>🧩</div>
+          <h2 style={{fontFamily:"'Fraunces',serif",fontSize:18,margin:"6px 0 0",color:"#a78bfa"}}>{cs.title}</h2>
+        </div>
+
+        <div style={{background:"#1e293b",borderRadius:14,padding:16,marginBottom:14,border:"1px solid #334155"}}>
+          <h4 style={{margin:"0 0 6px",fontSize:12,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:1}}>Escenario</h4>
+          <p style={{margin:0,fontSize:13,lineHeight:1.7,color:"#e2e8f0"}}>{cs.scenario}</p>
+        </div>
+
+        <div style={{background:"#1a2332",borderRadius:14,padding:16,marginBottom:18,border:"1px solid #334155"}}>
+          <h4 style={{margin:"0 0 8px",fontSize:12,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:1}}>Datos clínicos</h4>
+          {cs.data.map((d,i)=>(
+            <div key={i} style={{display:"flex",gap:8,marginBottom:5}}>
+              <span style={{color:mod.color,fontWeight:700,flexShrink:0}}>•</span>
+              <p style={{margin:0,fontSize:12,lineHeight:1.6,color:"#cbd5e1",fontFamily:"'DM Sans',monospace"}}>{d}</p>
+            </div>
+          ))}
+        </div>
+
+        <div style={{background:`${mod.color}10`,borderRadius:14,padding:"14px 16px",marginBottom:14,border:`1px solid ${mod.color}33`}}>
+          <p style={{margin:0,fontSize:14,fontWeight:700,color:mod.color,textAlign:"center"}}>❓ {cs.question}</p>
+        </div>
+
+        {cs.options.map((o,i)=>{
+          const sel=selOpt===i;
+          const rev=selOpt!==null;
+          let bg="#1e293b",brd="#334155";
+          if(rev&&sel&&o.correct){bg="#065f4622";brd="#10b981";}
+          if(rev&&sel&&!o.correct){bg="#7f1d1d22";brd="#ef4444";}
+          if(rev&&!sel&&o.correct){bg="#065f4615";brd="#10b98166";}
+          return (
+            <div key={i}>
+              <button onClick={()=>!rev&&setSelOpt(i)} disabled={rev} style={{width:"100%",background:bg,border:`1px solid ${brd}`,borderRadius:12,padding:"13px 14px",marginBottom:6,cursor:rev?"default":"pointer",textAlign:"left",color:"#e2e8f0",fontSize:13,lineHeight:1.5,transition:"all .2s",opacity:rev&&!sel&&!o.correct?.5:1}}>
+                <span style={{fontWeight:600}}>{String.fromCharCode(65+i)}.</span> {o.text}
+              </button>
+              {rev&&(sel||o.correct)&&(
+                <div style={{marginBottom:10,marginTop:-2,padding:"10px 14px",background:o.correct?"#065f4615":"#7f1d1d15",borderRadius:"0 0 12px 12px",borderLeft:`3px solid ${o.correct?"#10b981":"#ef4444"}`}}>
+                  <p style={{margin:0,fontSize:12,lineHeight:1.7,color:o.correct?"#6ee7b7":"#fca5a5"}}>{o.explanation}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {selOpt!==null&&<button onClick={()=>openMod(mod)} style={{width:"100%",marginTop:14,padding:"13px",background:"linear-gradient(135deg,#7c3aed,#6366f1)",border:"none",borderRadius:12,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>← Volver al módulo</button>}
+      </div></div>
+    );
+  }
+
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
