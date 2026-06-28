@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Graduar en 2 horas · Guía de Urgencia</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
+::-webkit-scrollbar{width:0}
+button{font-family:inherit}
+a{text-decoration:none}
+code{font-family:'DM Sans',monospace}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useRef,useEffect} = React;
+
+const C = "#0ea5e9";
+
+// ====== CONTENT BLOCKS ======
+const CHAPTERS = [
+  {
+    id:"mindset",
+    icon:"🧠",
+    title:"El chip mental",
+    time:"5 min",
+    type:"concept",
+    blocks:[
+      {h:"Tu punto de partida NO es cero", t:"Tú no haces retinoscopía. El paciente llega ya dilatado y con el autorefractómetro hecho bajo cicloplejia. Ese aparato te da un número objetivo de dónde está el ojo. TU TRABAJO es coger ese número, ponerlo en el frutóptero y AFINARLO con lo que el paciente te dice. Nada más. Eso es graduar."},
+      {h:"La regla de oro absoluta", t:"MÁXIMO POSITIVO / MÍNIMO NEGATIVO que dé la MEJOR agudeza visual. Repítelo como un mantra. El 90% de los errores del residente nuevo es pasarse de negativo (sobrecorregir miopes) porque el paciente 've más pequeñito y nítido' pero está forzando. Si con −2.00 y con −2.25 ve IGUAL de bien → te quedas con −2.00. Siempre."},
+      {h:"Por qué bajo cicloplejia es tu amigo", t:"La cicloplejia (ciclopentolato/tropicamida) paraliza la acomodación. Eso significa que el ojo no puede 'hacer trampas' enfocando. El número del autorefractómetro ciclopléjico es el valor REAL del ojo, sin acomodación enmascarándolo. Especialmente en jóvenes e hipermétropes esto es oro: revela la hipermetropía que el ojo escondía acomodando."},
+    ]
+  },
+  {
+    id:"lentes",
+    icon:"🔵",
+    title:"Lentes + y − : para qué sirven",
+    time:"10 min",
+    type:"concept",
+    blocks:[
+      {h:"Lente POSITIVA (+) = convergente", t:"Suma potencia, acerca el foco. Corrige la HIPERMETROPÍA (ojo corto, el foco cae DETRÁS de la retina → la lente + lo adelanta a la retina). También es la lente de CERCA (presbicia/adición). Truco mental: el hipermétrope 'le falta ojo' → le SUMAS con +."},
+      {h:"Lente NEGATIVA (−) = divergente", t:"Resta potencia, aleja el foco. Corrige la MIOPÍA (ojo largo, el foco cae DELANTE de la retina → la lente − lo retrasa a la retina). Truco mental: el miope 'le sobra ojo' → le RESTAS con −."},
+      {h:"Cómo lo ves en el autorefractómetro", t:"Te sale algo tipo: ESF −2.50  CIL −0.75  EJE 180. El primer número (esfera) con su signo te dice de entrada si es miope (−) o hipermétrope (+). Ese es tu punto de salida para montar en el frutóptero."},
+      {h:"Dioptría: la unidad", t:"La potencia se mide en dioptrías (D). Vas de 0.25 en 0.25 (es el escalón mínimo que nota el ojo). −0.25 es casi nada, −6.00 es una miopía alta. No te agobies con la cifra: el procedimiento es idéntico sea cual sea el número."},
+    ]
+  },
+  {
+    id:"astig",
+    icon:"⭕",
+    title:"Astigmatismo sin miedo",
+    time:"10 min",
+    type:"concept",
+    blocks:[
+      {h:"Qué es, en una frase", t:"La córnea no es una esfera perfecta (como un balón) sino que está más curvada en un meridiano que en otro (como un balón de rugby o el dorso de una cuchara). Eso hace que el ojo tenga DOS focos en vez de uno → la imagen se ve distorsionada/estirada a cualquier distancia."},
+      {h:"Las 3 cifras de una graduación", t:"ESFERA / CILINDRO × EJE. Ejemplo: −2.00 −0.75 × 90.\n• ESFERA (−2.00): la miopía o hipermetropía 'de base'.\n• CILINDRO (−0.75): cuánto astigmatismo hay (la diferencia entre los dos meridianos).\n• EJE (90): en qué orientación está ese astigmatismo (de 0 a 180°)."},
+      {h:"¿Cuándo toco ESFERA y cuándo CILINDRO?", t:"ESFERA → mueve el foco global adelante/atrás. La ajustas para la nitidez general (¿ve más o menos las letras enteras?).\nCILINDRO (potencia + eje) → corrige SOLO la distorsión direccional. La ajustas cuando el paciente ve las letras 'con sombra', 'estiradas' o 'dobles fantasma' aunque la esfera ya esté bien."},
+      {h:"La regla del equilibrio esfera-cilindro", t:"IMPORTANTÍSIMO: cada vez que añades −0.50 de CILINDRO, tienes que compensar la esfera +0.25 (en sentido contrario). Si no, dejas al paciente miopizado. Regla práctica: por cada 0.50 que metes de cilindro negativo, quita 0.25 de la esfera (hazla más positiva). Muchos frutópteros lo compensan solos, pero TÚ tienes que saberlo."},
+    ]
+  },
+  {
+    id:"subjetivo",
+    icon:"🎯",
+    title:"El subjetivo paso a paso",
+    time:"20 min",
+    type:"protocol",
+    intro:"Esta es LA secuencia que vas a repetir 40 veces al día. Memorízala como una coreografía. Monocular primero (un ojo cada vez, tapando el otro), luego binocular.",
+    steps:[
+      {t:"Monta el dato del autorefractómetro en el frutóptero", d:"Pasa la esfera, cilindro y eje ciclopléjicos al foróptero. Ese es tu punto de salida. Ocluye el ojo izquierdo, empieza por el DERECHO."},
+      {t:"Comprueba la agudeza de salida", d:"¿Qué línea lee con ese dato? Apúntalo mentalmente. Vas a intentar mejorarlo."},
+      {t:"Afina la ESFERA con la regla de oro", d:"Pon una letra/línea que casi lea. Prueba +0.25 → ¿mejora o empeora? Prueba −0.25 → ¿mejora? Si el − le hace ver 'más pequeño y oscuro' pero NO lee más letras → NO se lo dejes. Quédate con el MÁXIMO + / MÍNIMO − que le dé la mejor línea."},
+      {t:"Afina el CILINDRO (eje primero, potencia después)", d:"Usa el cilindro cruzado de Jackson (la rueda con el punto y la raya, o las dos posiciones que te muestra el foróptero). EJE: le enseñas posición 1 y posición 2 ('¿cuál ve mejor, esta… o esta?') y giras el eje hacia la que prefiera, hasta que diga 'iguales'. POTENCIA: lo mismo pero ahora añades o quitas cilindro según qué posición prefiera."},
+      {t:"Reajusta la esfera tras tocar cilindro", d:"Aplica la regla del equilibrio: si has metido cilindro, compensa la esfera. Vuelve a comprobar la mejor AV con la regla de oro."},
+      {t:"Afinado final con rojo-verde (duocromo)", d:"Le enseñas el test rojo/verde. '¿Ve más nítidas las letras del ROJO o del VERDE?'. Si ve mejor el ROJO → necesita más negativo (añade −0.25). Si ve mejor el VERDE → te has pasado de negativo (añade +0.25). Buscas que los vea IGUAL, o dejas ligerísimo dominio del rojo. Regla nemotécnica: 'Rojo = Resta (más −)'... no, al revés: ROJO mejor = aún corto de negativo."},
+      {t:"Repite TODO en el ojo izquierdo", d:"Ocluye el derecho, destapa el izquierdo, misma coreografía completa."},
+      {t:"Equilibrio binocular y prueba en visión lejana real", d:"Destapa ambos, comprueba que con los dos ojos ve cómodo y nítido. Si es présbita, ahora calculas la ADICIÓN para cerca (sumas + a la graduación de lejos según la edad: ~+1.00 a los 45, hasta +2.50/+3.00 a los 60+)."},
+    ],
+    pearls:[
+      "Si la mejor AV no llega a la unidad (1.0) con tu mejor graduación → NO es problema de graduar: busca patología (catarata, mácula, ambliopía). Eso ya es terreno tuyo de oftalmólogo.",
+      "Al estar bajo cicloplejia, el paciente NO ve bien de cerca durante la consulta (acomodación paralizada). Es normal, no te despistes: la adición la calculas por edad/fórmula, no se la pruebas funcional en ese momento.",
+      "Tras cicloplejia el valor suele salir MÁS positivo (o menos negativo) que la graduación final de uso. En hipermétropes jóvenes no prescribas toda la hipermetropía ciclopléjica de golpe: deja parte sin corregir o el paciente lo notará borroso de lejos al recuperar tono.",
+      "Diferencia >1.00D respecto a su gafa antigua → cuidado, cámbiale poco a poco o no lo tolerará (mareo, suelo curvado).",
+    ]
+  },
+  {
+    id:"dilatado",
+    icon:"💧",
+    title:"Con dilatación vs sin dilatación",
+    time:"8 min",
+    type:"concept",
+    blocks:[
+      {h:"Tu caso habitual: CON cicloplejia", t:"Como el paciente te llega dilatado y con autoref ciclopléjico, partes del valor más fiable y objetivo posible. Ventaja: cero trampa acomodativa, el número es real. Inconveniente: NO puedes valorar la visión de cerca en ese momento (acomodación paralizada) y el valor de lejos puede salir un pelín más positivo que el de uso final."},
+      {h:"Sin cicloplejia (subjetivo 'en seco')", t:"Cuando gradúes sin dilatar (revisiones, présbitas, controles), el riesgo es el contrario: el paciente acomoda y te enmascara hipermetropía o te 'pide' más negativo del que necesita. Ahí la regla de oro (máximo +/mínimo −) y el empañamiento son CRÍTICOS para no sobrecorregir."},
+      {h:"El empañamiento (fogging) — tu red de seguridad sin ciclo", t:"Si gradúas sin dilatar: añade +1.00 de más al principio para emborronar a propósito. El paciente ve mal (relaja la acomodación). Luego vas QUITANDO ese positivo de 0.25 en 0.25 hasta que alcance su mejor AV. Así llegas al valor sin que acomode. Sin este truco, sobrecorriges miopes constantemente."},
+      {h:"Regla práctica de decisión", t:"Joven + primera vez / hipermétrope / estrabismo / sospecha → CICLOPLEJIA sí o sí (que es lo que ya hacéis). Adulto présbita en revisión rutinaria con graduación conocida → subjetivo en seco con empañamiento suele bastar."},
+    ]
+  },
+];
+
+// ====== CLINICAL CASES ======
+const CASES = [
+  {
+    title:"Miope que pide 'ver más'",
+    scenario:"Paciente 24 años. Autoref ciclopléjico: OD −3.00. En el subjetivo, cuando le pones −3.50 dice que 've las letras más pequeñas y marcadas'. Lee la misma línea (1.0) con −3.00 y con −3.50.",
+    q:"¿Qué graduación le dejas en OD?",
+    opts:[
+      {t:"−3.50, porque dice que ve más nítido", correct:false, e:"Trampa clásica. Lee la MISMA línea con ambas. El −3.50 le hace acomodar/forzar y a la larga da fatiga y cefaleas. Estás sobrecorrigiendo."},
+      {t:"−3.00, por la regla de oro (mínimo negativo para la mejor AV)", correct:true, e:"¡Exacto! Misma AV (1.0) con menos negativo → te quedas con −3.00. 'Más pequeño y marcado' NO es 'leo más letras'. Mínimo negativo siempre."},
+      {t:"−3.25, un punto intermedio", correct:false, e:"No inventes intermedios para 'contentar'. Si con −3.00 ya alcanza la máxima AV, añadir negativo solo le mete acomodación de más."},
+    ]
+  },
+  {
+    title:"Hipermétrope joven bajo ciclo",
+    scenario:"Paciente 19 años, cefaleas al estudiar. Autoref ciclopléjico: OD +3.50. Sin gafas ve 1.0 de lejos. En subjetivo acepta cómodo hasta +2.00 viendo 1.0; con +3.50 ve algo borroso de lejos.",
+    q:"¿Cómo actúas?",
+    opts:[
+      {t:"Prescribo +3.50 completo, es el valor ciclopléjico real", correct:false, e:"Error frecuente. El valor ciclopléjico es el TOTAL, pero al recuperar el tono muscular verá borroso de lejos si le clavas todo. No se prescribe la hipermetropía ciclopléjica íntegra de golpe en un joven."},
+      {t:"No le pongo nada, ve 1.0 sin gafas", correct:false, e:"Ve 1.0 pero a costa de acomodar todo el día → por eso las cefaleas. Hay que aliviarle el esfuerzo, sobre todo en cerca."},
+      {t:"Prescribo parte (~+2.00), aliviando el esfuerzo sin emborronar de lejos", correct:true, e:"¡Correcto! Dejas la hipermetropía manifiesta que acepta cómodo (+2.00), reduces el esfuerzo acomodativo (quita las cefaleas) y no le emborronas el lejos. La reserva latente la sabes por el ciclo, pero no la clavas entera."},
+    ]
+  },
+  {
+    title:"¿Esfera o cilindro?",
+    scenario:"Paciente con −2.00 −1.00 × 180 montado. Dice que ve las letras 'con una sombra al lado / como estiradas en horizontal', aunque de tamaño las distingue.",
+    q:"¿Qué retocas primero?",
+    opts:[
+      {t:"Subo esfera a −2.50, para que se vean más definidas", correct:false, e:"La esfera mueve la nitidez GLOBAL, no la sombra direccional. Meter más esfera aquí solo lo miopiza. La queja es de distorsión, no de tamaño."},
+      {t:"Reviso CILINDRO (eje y potencia) con el cilindro cruzado", correct:true, e:"¡Bien! 'Sombra / estirado / fantasma direccional' = astigmatismo mal afinado. Ajustas eje primero (¿posición 1 o 2?) y luego potencia. Y recuerda compensar la esfera tras tocar el cilindro."},
+      {t:"Le digo que es normal y termino", correct:false, e:"Esa queja es la firma de un cilindro/eje sin afinar. Es justo lo que el subjetivo debe resolver."},
+    ]
+  },
+];
+
+function App(){
+  const [tab,setTab] = useState("home");
+  const [chap,setChap] = useState(null);
+  const [openCase,setOpenCase] = useState(null);
+  const [sel,setSel] = useState(null);
+  const top = useRef(null);
+  const scroll = ()=> top.current && top.current.scrollIntoView({behavior:'smooth'});
+
+  const page = {minHeight:"100vh",background:"linear-gradient(145deg,#0f172a,#1e293b 50%,#0f172a)",color:"#e2e8f0",fontFamily:"'DM Sans',sans-serif"};
+  const wrap = {maxWidth:600,margin:"0 auto",padding:"28px 20px 48px"};
+  const back = {background:"none",border:"none",color:"#64748b",fontSize:14,cursor:"pointer",padding:"8px 0",marginBottom:14,display:"flex",alignItems:"center",gap:6};
+
+  // HOME
+  if(tab==="home") return (
+    <div style={page}><div ref={top}/><div style={wrap}>
+      <div style={{textAlign:"center",marginBottom:14}}>
+        <div style={{fontSize:48}}>⚡</div>
+        <h1 style={{fontFamily:"'Fraunces',serif",fontSize:25,fontWeight:700,margin:"4px 0 0",background:"linear-gradient(135deg,#38bdf8,#818cf8)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Graduar en 2 horas</h1>
+        <p style={{color:"#64748b",fontSize:13,marginTop:6}}>Guía de urgencia · de AV + autoref ciclopléjico a graduación final</p>
+      </div>
+
+      <div style={{background:"linear-gradient(135deg,#1e3a5f,#1e293b)",borderRadius:16,padding:18,margin:"18px 0 24px",border:"1px solid #334155"}}>
+        <p style={{fontSize:13,lineHeight:1.7,color:"#cbd5e1",margin:0}}>
+          Tu flujo real: <strong style={{color:"#7dd3fc"}}>el paciente llega con la AV hecha, dilatado y con el autorefractómetro ciclopléjico pasado</strong>. Tú coges ese dato objetivo, lo montas en el frutóptero y lo <strong style={{color:"#7dd3fc"}}>afinas con el subjetivo</strong>. Esta guía es exactamente eso, sin paja. En 2 horas lo tienes integrado para rodar mañana.
+        </p>
+      </div>
+
+      <h3 style={{fontSize:12,color:"#64748b",textTransform:"uppercase",letterSpacing:1.5,marginBottom:12,fontWeight:700}}>📚 Teoría imprescindible</h3>
+      {CHAPTERS.map((c,i)=>(
+        <div key={c.id} onClick={()=>{setChap(c);setTab("chap");scroll();}} style={{background:"#1e293b",borderRadius:14,padding:"15px 16px",marginBottom:10,cursor:"pointer",border:"1px solid #334155",display:"flex",alignItems:"center",gap:13}}>
+          <div style={{fontSize:24,width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center",background:c.type==="protocol"?"#7c3aed22":`${C}15`,borderRadius:10,flexShrink:0}}>{c.icon}</div>
+          <div style={{flex:1}}>
+            <h4 style={{margin:0,fontSize:14.5,fontWeight:600,color:"#f1f5f9"}}>{c.title}</h4>
+            <p style={{margin:"3px 0 0",fontSize:11,color:"#64748b"}}>{c.type==="protocol"?"🎯 Protocolo práctico":"Concepto"} · {c.time}</p>
+          </div>
+          <span style={{color:"#475569",fontSize:18}}>›</span>
+        </div>
+      ))}
+
+      <h3 style={{fontSize:12,color:"#64748b",textTransform:"uppercase",letterSpacing:1.5,margin:"24px 0 12px",fontWeight:700}}>🧩 Casos relámpago</h3>
+      {CASES.map((cs,i)=>(
+        <div key={i} onClick={()=>{setOpenCase(i);setSel(null);setTab("case");scroll();}} style={{background:"linear-gradient(135deg,#7c3aed18,#1e293b)",borderRadius:14,padding:"15px 16px",marginBottom:10,cursor:"pointer",border:"1px solid #7c3aed44",display:"flex",alignItems:"center",gap:13}}>
+          <div style={{fontSize:22,width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center",background:"#7c3aed22",borderRadius:10,flexShrink:0}}>🧩</div>
+          <div style={{flex:1}}>
+            <h4 style={{margin:0,fontSize:14,fontWeight:600,color:"#c4b5fd"}}>{cs.title}</h4>
+            <p style={{margin:"3px 0 0",fontSize:11,color:"#7c6aad"}}>Caso interactivo</p>
+          </div>
+          <span style={{color:"#475569",fontSize:18}}>›</span>
+        </div>
+      ))}
+
+      <div style={{textAlign:"center",marginTop:24,padding:14,background:"#1e293b",borderRadius:12,border:"1px solid #334155"}}>
+        <p style={{fontSize:11,color:"#64748b",margin:0}}>📚 Preparado por Pablo · Óptico-Optometrista</p>
+        <p style={{fontSize:10,color:"#475569",margin:"3px 0 0"}}>Para el Dr. Vázquez Gómez · arranque de residencia</p>
+      </div>
+    </div></div>
+  );
+
+  // CHAPTER
+  if(tab==="chap"&&chap){
+    const isProto = chap.type==="protocol";
+    return (
+      <div style={page}><div ref={top}/><div style={wrap}>
+        <button onClick={()=>{setTab("home");scroll();}} style={back}>‹ Inicio</button>
+        <div style={{textAlign:"center",marginBottom:22}}>
+          <div style={{fontSize:42}}>{chap.icon}</div>
+          <h2 style={{fontFamily:"'Fraunces',serif",fontSize:22,margin:"6px 0 0",color:isProto?"#a78bfa":C}}>{chap.title}</h2>
+          <p style={{color:"#64748b",fontSize:12,marginTop:4}}>{chap.time}</p>
+        </div>
+
+        {chap.intro && <div style={{background:"#1a2332",borderRadius:12,padding:"14px 16px",marginBottom:18,border:"1px solid #334155"}}>
+          <p style={{margin:0,fontSize:13,lineHeight:1.7,color:"#94a3b8"}}>{chap.intro}</p>
+        </div>}
+
+        {/* concept blocks */}
+        {chap.blocks && chap.blocks.map((b,i)=>(
+          <div key={i} style={{background:"#1e293b",borderRadius:14,padding:"16px 18px",marginBottom:12,border:`1px solid ${C}22`}}>
+            <h4 style={{margin:"0 0 7px",fontSize:14.5,fontWeight:700,color:C}}>{b.h}</h4>
+            <p style={{margin:0,fontSize:13.5,lineHeight:1.75,color:"#cbd5e1",whiteSpace:"pre-line"}}>{b.t}</p>
+          </div>
+        ))}
+
+        {/* protocol steps */}
+        {chap.steps && chap.steps.map((s,i)=>(
+          <div key={i} style={{display:"flex",gap:13,marginBottom:12}}>
+            <div style={{flexShrink:0,width:30,height:30,borderRadius:"50%",background:"linear-gradient(135deg,#7c3aed,#6366f1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#fff"}}>{i+1}</div>
+            <div style={{flex:1,background:"#1e293b",borderRadius:12,padding:"13px 15px",border:"1px solid #334155"}}>
+              <h4 style={{margin:"0 0 5px",fontSize:14,fontWeight:700,color:"#c4b5fd"}}>{s.t}</h4>
+              <p style={{margin:0,fontSize:13,lineHeight:1.7,color:"#cbd5e1"}}>{s.d}</p>
+            </div>
+          </div>
+        ))}
+
+        {/* pearls */}
+        {chap.pearls && <div style={{marginTop:20}}>
+          <h3 style={{fontSize:12,color:"#64748b",textTransform:"uppercase",letterSpacing:1.5,marginBottom:12,fontWeight:700}}>💎 Perlas para no cagarla</h3>
+          {chap.pearls.map((p,i)=>(
+            <div key={i} style={{display:"flex",gap:10,marginBottom:9,padding:"11px 13px",background:"#0f172a",borderRadius:10,borderLeft:`3px solid ${C}`}}>
+              <span style={{fontSize:15,flexShrink:0}}>💎</span>
+              <p style={{margin:0,fontSize:12.5,lineHeight:1.65,color:"#e2e8f0"}}>{p}</p>
+            </div>
+          ))}
+        </div>}
+      </div></div>
+    );
+  }
+
+  // CASE
+  if(tab==="case"&&openCase!==null){
+    const cs = CASES[openCase];
+    const rev = sel!==null;
+    return (
+      <div style={page}><div ref={top}/><div style={wrap}>
+        <button onClick={()=>{setTab("home");scroll();}} style={back}>‹ Inicio</button>
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{fontSize:40}}>🧩</div>
+          <h2 style={{fontFamily:"'Fraunces',serif",fontSize:19,margin:"6px 0 0",color:"#a78bfa"}}>{cs.title}</h2>
+        </div>
+
+        <div style={{background:"#1e293b",borderRadius:14,padding:16,marginBottom:14,border:"1px solid #334155"}}>
+          <h4 style={{margin:"0 0 6px",fontSize:11,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:1}}>Escenario</h4>
+          <p style={{margin:0,fontSize:13.5,lineHeight:1.7,color:"#e2e8f0"}}>{cs.scenario}</p>
+        </div>
+
+        <div style={{background:`${C}10`,borderRadius:14,padding:"13px 16px",marginBottom:14,border:`1px solid ${C}33`}}>
+          <p style={{margin:0,fontSize:14,fontWeight:700,color:C,textAlign:"center"}}>❓ {cs.q}</p>
+        </div>
+
+        {cs.opts.map((o,i)=>{
+          const s = sel===i;
+          let bg="#1e293b",brd="#334155";
+          if(rev&&s&&o.correct){bg="#065f4622";brd="#10b981";}
+          if(rev&&s&&!o.correct){bg="#7f1d1d22";brd="#ef4444";}
+          if(rev&&!s&&o.correct){bg="#065f4615";brd="#10b98166";}
+          return (
+            <div key={i}>
+              <button onClick={()=>!rev&&setSel(i)} disabled={rev} style={{width:"100%",background:bg,border:`1px solid ${brd}`,borderRadius:12,padding:"13px 15px",marginBottom:6,cursor:rev?"default":"pointer",textAlign:"left",color:"#e2e8f0",fontSize:13,lineHeight:1.5,opacity:rev&&!s&&!o.correct?.5:1}}>
+                <span style={{fontWeight:700}}>{String.fromCharCode(65+i)}.</span> {o.t}
+              </button>
+              {rev&&(s||o.correct)&&(
+                <div style={{marginBottom:10,marginTop:-2,padding:"11px 14px",background:o.correct?"#065f4615":"#7f1d1d15",borderRadius:"0 0 12px 12px",borderLeft:`3px solid ${o.correct?"#10b981":"#ef4444"}`}}>
+                  <p style={{margin:0,fontSize:12.5,lineHeight:1.7,color:o.correct?"#6ee7b7":"#fca5a5"}}>{o.e}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {rev && <div style={{display:"flex",gap:10,marginTop:14}}>
+          {openCase>0 && <button onClick={()=>{setOpenCase(openCase-1);setSel(null);scroll();}} style={{flex:1,padding:"12px",background:"#1e293b",border:"1px solid #334155",borderRadius:12,color:"#94a3b8",fontSize:13,fontWeight:600,cursor:"pointer"}}>‹ Anterior</button>}
+          {openCase<CASES.length-1 ? 
+            <button onClick={()=>{setOpenCase(openCase+1);setSel(null);scroll();}} style={{flex:1,padding:"12px",background:"linear-gradient(135deg,#7c3aed,#6366f1)",border:"none",borderRadius:12,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>Siguiente caso →</button>
+            :
+            <button onClick={()=>{setTab("home");scroll();}} style={{flex:1,padding:"12px",background:"linear-gradient(135deg,#10b981,#059669)",border:"none",borderRadius:12,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>✓ Terminar</button>
+          }
+        </div>}
+      </div></div>
+    );
+  }
+
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
